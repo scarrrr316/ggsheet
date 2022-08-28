@@ -73,12 +73,15 @@ def fetch_matches(mgr, content) -> list:
     matches_data_dict = read_json()
     matches_data_dict_old = deepcopy(matches_data_dict)
 
-    outdated_matches = list(set([match_id for match_id in matches_data_dict.keys()]) - set([match['MatchID'] for match in matches]))
+    old_matches_id = [match_id for match_id in matches_data_dict.keys()]
+    new_matches_list = [match for match in matches if match['QueueID'] != 'deathmatch']
+    new_matches_id = [match['MatchID'] for match in new_matches_list]
+    outdated_matches = list(set(old_matches_id) - set(new_matches_id))
     for match_id in outdated_matches:
         matches_data_dict.pop(match_id)
         print(f'Deleted {match_id} from cache')
 
-    for i, match in enumerate(matches):
+    for i, match in enumerate(new_matches_list):
         match_data, matches_data_dict = fetch_match_data(mgr, match['MatchID'], matches_data_dict)
 
         me = next(player for player in match_data["players"] if player["subject"] == mgr.client.puuid)
