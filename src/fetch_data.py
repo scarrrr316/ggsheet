@@ -63,10 +63,21 @@ def fetch_match_data(mgr, match_id, matches_data_dict: dict = read_json()):
     return match_data, matches_data_dict
 
 def fetch_matches(mgr, content) -> list:
-    matches = mgr.client.fetch_match_history()["History"]
+    try:
+        matches = mgr.client.fetch_match_history()["History"]
+    except TypeError:
+        sys.exit("Please check your region setting and try again.")
+
     choices = [Choice("custom", "use my own match id"), Separator()]
+
     matches_data_dict = read_json()
     matches_data_dict_old = deepcopy(matches_data_dict)
+
+    outdated_matches = list(set([match_id for match_id in matches_data_dict.keys()]) - set([match['MatchID'] for match in matches]))
+    for match_id in outdated_matches:
+        matches_data_dict.pop(match_id)
+        print(f'Deleted {match_id} from cache')
+
     for i, match in enumerate(matches):
         match_data, matches_data_dict = fetch_match_data(mgr, match['MatchID'], matches_data_dict)
 
